@@ -56,4 +56,4 @@ jobs:
         script: |
           docker stop app-users
           docker rm --force app-users
-          docker run  -d -p 80:5000 -e POSTGRES_URL=${{ secrets.POSTGRES_URL }} -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} --network=rede --name c2 gabirubr/app_users2:${{ github.sha }}
+          docker run  -d -p 80:5001 -e POSTGRES_URL=${{ secrets.POSTGRES_URL }} -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} --network=rede --name c2 gabirubr/app_users2:${{ github.sha }}
