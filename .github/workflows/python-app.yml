@@ -38,7 +38,7 @@ jobs:
     - name: Login to Docker Hub
       uses: docker/login-action@v3
       with:
-        username: "weirdessen"
+        username: "ezambomsantana"
         password: ${{ secrets.DOCKERHUB_TOKEN }}
         
     - name: Set up Docker Buildx
@@ -50,7 +50,8 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: weirdessen/users-ci:${{ github.sha }}
+        tags: ezambomsantana/users-ci:${{ github.sha }}
+        
     - name: executing remote ssh commands using password
       uses: appleboy/ssh-action@master
       with:
