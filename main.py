@@ -2,9 +2,11 @@ from flask import Flask, request, jsonify
 from db import db
 from models import User
 import os
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
     
     postgres_user = os.environ.get('POSTGRES_USER', 'appuser')
     postgres_password = os.environ.get('POSTGRES_PASSWORD', 'apppass')
