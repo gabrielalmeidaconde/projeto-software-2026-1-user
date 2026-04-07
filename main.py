@@ -46,6 +46,16 @@ def create_app():
             "email": user.email
         }), 200
 
+    @app.route("/users/<string:email>/email", methods=["GET"])
+    def get_user_by_email(email):
+        user = User.query.filter_by(email=email).first_or_404()
+
+        return jsonify({
+            "id": str(user.id),
+            "name": user.name,
+            "email": user.email
+        }), 200
+
     @app.route("/users/<uuid:user_id>", methods=["DELETE"])
     def delete_user(user_id):
         user = User.query.get_or_404(user_id)
