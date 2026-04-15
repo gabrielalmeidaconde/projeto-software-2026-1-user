@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppass
+      POSTGRES_DB: users
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppass
+      POSTGRES_URL: db
+      AUTH0_DOMAIN: dev-ognl3epbp26ya3q2.us.auth0.com
+      API_AUDIENCE: https://dev-ognl3epbp26ya3q2.us.auth0.com/api/v2/
+    depends_on:
+      - db
