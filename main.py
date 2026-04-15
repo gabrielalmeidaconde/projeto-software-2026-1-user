@@ -3,6 +3,10 @@ from db import db
 from models import User
 import os
 from flask_cors import CORS
+from dotenv import load_dotenv
+from auth import require_auth, require_admin
+
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)
@@ -21,6 +25,7 @@ def create_app():
 
 
     @app.route("/users", methods=["POST"])
+    @require_auth
     def create_user():
         data = request.json
 
@@ -39,6 +44,7 @@ def create_app():
         }), 201
 
     @app.route("/users/<uuid:user_id>", methods=["GET"])
+    @require_auth
     def get_user(user_id):
         user = User.query.get_or_404(user_id)
 
@@ -49,6 +55,7 @@ def create_app():
         }), 200
 
     @app.route("/users/<string:email>/email", methods=["GET"])
+    @require_auth
     def get_user_by_email(email):
         user = User.query.filter_by(email=email).first_or_404()
 
@@ -59,6 +66,7 @@ def create_app():
         }), 200
 
     @app.route("/users/<uuid:user_id>", methods=["DELETE"])
+    @require_admin
     def delete_user(user_id):
         user = User.query.get_or_404(user_id)
 
@@ -68,6 +76,7 @@ def create_app():
         return "", 204
 
     @app.route("/users", methods=["GET"])
+    @require_admin
     def list_users():
         users = User.query.all()
 

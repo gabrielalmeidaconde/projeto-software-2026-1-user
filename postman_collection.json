@@ -1,0 +1,284 @@
+{
+  "info": {
+    "name": "Users API - Auth0",
+    "_postman_id": "users-api-auth0-collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url",   "value": "http://localhost:5000" },
+    { "key": "domain",     "value": "dev-ognl3epbp26ya3q2.us.auth0.com" },
+    { "key": "client_id",  "value": "DWKaMSHC3ccyOseqlpaEczJDZkOah0Zh" },
+    { "key": "audience",   "value": "https://dev-ognl3epbp26ya3q2.us.auth0.com/api/v2/" },
+    { "key": "user_token",  "value": "" },
+    { "key": "admin_token", "value": "" },
+    { "key": "created_user_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1 - Auth",
+      "item": [
+        {
+          "name": "Obter token - Usuário Normal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('user_token', json.access_token);",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Token recebido', () => pm.expect(json.access_token).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "https://{{domain}}/oauth/token",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grant_type\": \"password\",\n  \"username\": \"user@user.com\",\n  \"password\": \"Teste123!\",\n  \"audience\": \"{{audience}}\",\n  \"client_id\": \"{{client_id}}\",\n  \"scope\": \"openid profile email\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Obter token - Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('admin_token', json.access_token);",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Token recebido', () => pm.expect(json.access_token).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "https://{{domain}}/oauth/token",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grant_type\": \"password\",\n  \"username\": \"admin@user.com\",\n  \"password\": \"Teste123!\",\n  \"audience\": \"{{audience}}\",\n  \"client_id\": \"{{client_id}}\",\n  \"scope\": \"openid profile email\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - Rotas de Usuário (require_auth)",
+      "item": [
+        {
+          "name": "POST /users - Criar usuário (user normal) ✅ 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('created_user_id', json.id);",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Retorna id', () => pm.expect(json.id).to.be.a('string'));",
+                  "pm.test('Retorna name', () => pm.expect(json.name).to.eql('Joao Silva'));",
+                  "pm.test('Retorna email', () => pm.expect(json.email).to.eql('joao@teste.com'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{user_token}}" }
+            ],
+            "url": "{{base_url}}/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Joao Silva\",\n  \"email\": \"joao@teste.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /users - Sem token ❌ 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sem Token\",\n  \"email\": \"semtoken@teste.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET /users/:id - Buscar por ID (user normal) ✅ 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Retorna id correto', () => pm.expect(json.id).to.eql(pm.collectionVariables.get('created_user_id')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }],
+            "url": "{{base_url}}/users/{{created_user_id}}"
+          }
+        },
+        {
+          "name": "GET /users/:id - Sem token ❌ 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/users/{{created_user_id}}"
+          }
+        },
+        {
+          "name": "GET /users/:email/email - Buscar por email (user normal) ✅ 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Email correto', () => pm.expect(json.email).to.eql('joao@teste.com'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }],
+            "url": "{{base_url}}/users/joao@teste.com/email"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 - Rotas Admin (require_admin)",
+      "item": [
+        {
+          "name": "GET /users - Listar todos (admin) ✅ 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Retorna array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/users"
+          }
+        },
+        {
+          "name": "GET /users - Usuário normal tenta listar ❌ 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }],
+            "url": "{{base_url}}/users"
+          }
+        },
+        {
+          "name": "DELETE /users/:id - Deletar (admin) ✅ 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/users/{{created_user_id}}"
+          }
+        },
+        {
+          "name": "DELETE /users/:id - Usuário normal tenta deletar ❌ 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }],
+            "url": "{{base_url}}/users/{{created_user_id}}"
+          }
+        },
+        {
+          "name": "DELETE /users/:id - Sem token ❌ 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/users/{{created_user_id}}"
+          }
+        }
+      ]
+    }
+  ]
+}
